@@ -1,0 +1,8 @@
+{
+  
+     
+    "mocha.requires": ["ts-node/register"] , 
+    "mocha.files.glob": "test/**/*.spec.ts" , 
+        
+    
+}
