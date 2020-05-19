@@ -5,9 +5,9 @@ import { MongoClient, Collection, MongoCallback, ObjectId, Db } from 'mongodb';
 // usegage 
 
 
-export const mongoOperator = <T>(fn : (collection : Collection<T>|Db) => Promise<T>) => {
+export const operatorMongoCollection  = <T>(fn : (collection : Collection<T>) => Promise<T>) => {
 
-    const _fn = (source : Observable<Collection|Db>) =>{
+    const _fn = (source : Observable<Collection>) =>{
 
       return   source.pipe(flatMap (collection  => {
 
@@ -16,4 +16,16 @@ export const mongoOperator = <T>(fn : (collection : Collection<T>|Db) => Promise
     }
     return _fn
 }
- 
+let db : Db
+  
+export const operatorMongoDB = <R>(fn : (collection : Db) => Promise<R>) => {
+
+    const _fn = (source : Observable<Db>) =>{
+
+      return   source.pipe(flatMap (collection  => {
+
+                return from (fn(collection))
+        }))
+    }
+    return _fn
+}
