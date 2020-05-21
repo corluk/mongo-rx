@@ -37,6 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MongoRx = exports.MongoInsertType = void 0;
+var MongoOperators_1 = require("./MongoOperators");
 var mongodb_1 = require("mongodb");
 var rxjs_1 = require("rxjs");
 var operators_1 = require("rxjs/operators");
@@ -113,13 +114,28 @@ var MongoRx = /** @class */ (function () {
             return collection;
         }));
     };
-    MongoRx.prototype.getDb$ = function (params) {
+    MongoRx.prototype.getDb$ = function (namespace) {
         var _this = this;
         return rxjs_1.of(this.client).pipe(operators_1.map(function (client) {
-            var ns = _this.getNamespace(params, true);
+            var ns = _this.getNamespace(namespace, true);
             var db = client.db(ns.db);
             return db;
         }));
+    };
+    MongoRx.prototype.insert = function (collectionName, values) {
+        var fn = function (collection) { return collection.insertOne(values); };
+        var obs$ = this.getCollection$(collectionName);
+        if (Array.isArray(values)) {
+            var fnMany = function (collection) { return collection.insertMany(values); };
+            return obs$.pipe(MongoOperators_1.operatorMongoCollection(fnMany));
+        }
+        return obs$.pipe(MongoOperators_1.operatorMongoCollection(fn));
+    };
+    MongoRx.prototype.operateOnCollection = function (collectionName, fn) {
+        return this.getCollection$(collectionName).pipe(MongoOperators_1.operatorMongoCollection(fn));
+    };
+    MongoRx.prototype.operateOnDb = function (fn, db) {
+        return this.getDb$(db).pipe(MongoOperators_1.operatorMongoDB(fn));
     };
     MongoRx.doOperation = function (obs, promise) {
         return obs.pipe(operators_1.flatMap(function (client) {

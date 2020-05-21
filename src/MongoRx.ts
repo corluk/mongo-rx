@@ -1,8 +1,9 @@
-import { MongoClient, MongoClientOptions, MongoCallback, Db, Collection, IndexOptions } from "mongodb"
-import { Observable, from, of, bindCallback, Observer, observable } from "rxjs"
+import { operatorMongoCollection, operatorMongoDB } from './MongoOperators';
+import { MongoClient, MongoClientOptions, MongoCallback, Db, Collection, IndexOptions, InsertWriteOpResult, InsertOneWriteOpResult } from "mongodb"
+import { Observable, from, of } from "rxjs"
 import { map, flatMap } from "rxjs/operators"
-import {MongoUriBuilderConfig , mongoUriBuilder} from "./MongUriBuilder"
- 
+import { MongoUriBuilderConfig, mongoUriBuilder } from "./MongUriBuilder"
+
 import { connect } from "http2"
 
 export enum MongoInsertType {
@@ -23,8 +24,8 @@ export class MongoRx {
     client: MongoClient
     defaultDb: string
     clientOptions: MongoClientOptions
-   // connection : 
-   // uri: string
+    // connection : 
+    // uri: string
     public setClientOptions(options) {
         this.clientOptions = options
     }
@@ -38,17 +39,17 @@ export class MongoRx {
         }
         return MongoRx.instance
     }
-    public async init(builder : MongoUriBuilderConfig){
+    public async init(builder: MongoUriBuilderConfig) {
         let uri = mongoUriBuilder(builder).toString()
-        this.client =  new MongoClient( uri, this.clientOptions) 
+        this.client = new MongoClient(uri, this.clientOptions)
         await this.client.connect()
-        
+
     }
 
     public setDefaultDb(db: string) {
         this.defaultDb = db
     }
-    public getClient(){
+    public getClient() {
         return this.client
     }
 
@@ -81,44 +82,71 @@ export class MongoRx {
         return returnValue
 
     }
-    
+
     public getCollection$(dbOrNamespace?: string): Observable<Collection> {
 
 
-        return of(this.client).pipe(map( (client:MongoClient) => {
-            
-                let ns = this.getNamespace(dbOrNamespace)
-                let collection = client.db(ns.db).collection(ns.collection)
-                return collection  
-             
-             
+        return of(this.client).pipe(map((client: MongoClient) => {
+
+            let ns = this.getNamespace(dbOrNamespace)
+            let collection = client.db(ns.db).collection(ns.collection)
+            return collection
+
+
 
         }))
 
     }
 
-    public getDb$(params:string ){
-        return of(this.client).pipe(map( (client:MongoClient) => {
-            
-            let ns = this.getNamespace(params,true )
+    public getDb$(namespace?: string) {
+        return of(this.client).pipe(map((client: MongoClient) => {
+
+            let ns = this.getNamespace(namespace, true)
             let db = client.db(ns.db)
-            return db   
-         
+            return db
+
         }))
 
 
     }
-    
-   static   doOperation<T> (obs : Observable<MongoClient> , promise: Promise<T>) {
+    public insert<T,E>(collectionName: string, values: E): Observable<T>  {
+
+        let fn = (collection: Collection) => collection.insertOne(values)
+
+        let obs$ = this.getCollection$(collectionName)
+        if (Array.isArray(values)) {
+            let fnMany = (collection: Collection) => collection.insertMany(values)
+
+            return obs$.pipe(operatorMongoCollection(fnMany))
+        }
+
+        return obs$.pipe(operatorMongoCollection(fn))
+    }
+
+
+
+
+    public operateOnCollection<T, R>(collectionName: string, fn: <T, R>(collection: Collection) =>
+        Promise<any>) {
+
+        return this.getCollection$(collectionName).pipe(operatorMongoCollection(fn))
+    }
+
+    public operateOnDb(fn: <T>(db: Db) => Promise<T>, db?: string) {
+
+        return this.getDb$(db).pipe(operatorMongoDB(fn))
+    }
+
+    static doOperation<T>(obs: Observable<MongoClient>, promise: Promise<T>) {
 
         return obs.pipe(flatMap(client => {
 
             return from(promise)
         }))
-   }
-   async dispose(){
-       await this.client.close()
-   }
+    }
+    async dispose() {
+        await this.client.close()
+    }
 
 
 }
