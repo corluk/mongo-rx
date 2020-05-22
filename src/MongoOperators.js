@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.operatorMongoDB = exports.operatorMongoCollection = void 0;
 var operators_1 = require("rxjs/operators");
 var rxjs_1 = require("rxjs");
 // usegage 

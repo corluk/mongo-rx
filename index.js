@@ -1,11 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.operatorMongoDB = exports.operatorMongoCollection = exports.MongoRx = exports.mongoUriBuilder = void 0;
 var MongoOperators_1 = require("./src/MongoOperators");
-Object.defineProperty(exports, "operatorMongoDB", { enumerable: true, get: function () { return MongoOperators_1.operatorMongoDB; } });
-Object.defineProperty(exports, "operatorMongoCollection", { enumerable: true, get: function () { return MongoOperators_1.operatorMongoCollection; } });
+exports.operatorMongoDB = MongoOperators_1.operatorMongoDB;
+exports.operatorMongoCollection = MongoOperators_1.operatorMongoCollection;
 var MongoRx_1 = require("./src/MongoRx");
-Object.defineProperty(exports, "MongoRx", { enumerable: true, get: function () { return MongoRx_1.MongoRx; } });
+exports.MongoRx = MongoRx_1.MongoRx;
 var MongUriBuilder_1 = require("./src/MongUriBuilder");
-Object.defineProperty(exports, "mongoUriBuilder", { enumerable: true, get: function () { return MongUriBuilder_1.mongoUriBuilder; } });
+exports.mongoUriBuilder = MongUriBuilder_1.mongoUriBuilder;
 exports.default = MongoRx_1.MongoRx;

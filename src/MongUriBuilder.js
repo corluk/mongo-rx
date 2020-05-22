@@ -11,7 +11,6 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.mongoUriBuilder = void 0;
 var uribuilder_1 = require("uribuilder");
 var getOptions = function (options) {
     var model = {};

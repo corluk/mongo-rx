@@ -1,3 +1,4 @@
+import { MongoRxCollection } from './MongoRxCollection';
 import { operatorMongoCollection, operatorMongoDB } from './MongoOperators';
 import { MongoClient, MongoClientOptions, MongoCallback, Db, Collection, IndexOptions, InsertWriteOpResult, InsertOneWriteOpResult } from "mongodb"
 import { Observable, from, of } from "rxjs"
@@ -54,7 +55,7 @@ export class MongoRx {
     }
 
 
-    private getNamespace(param: string, onlyDb: boolean = false): { db: string, collection: string } {
+    private parseNamespace(param: string, onlyDb: boolean = false): { db: string, collection: string } {
 
         let db = this.defaultDb
         let collection = param
@@ -66,8 +67,8 @@ export class MongoRx {
             returnValue.collection = null
             let _param = param.split(".")
 
-            returnValue.db = param[0]
-            returnValue.collection = param[1]
+            returnValue.db = _param[0]
+            returnValue.collection = _param[1]
         }
 
 
@@ -83,7 +84,7 @@ export class MongoRx {
 
     }
 
-    public getCollection$(dbOrNamespace?: string): Observable<Collection> {
+   /* public getCollection$(dbOrNamespace?: string): Observable<Collection> {
 
 
         return of(this.client).pipe(map((client: MongoClient) => {
@@ -109,7 +110,7 @@ export class MongoRx {
 
 
     }
-    public insert<T,E>(collectionName: string, values: E): Observable<T>  {
+    public insert$<T,E>(collectionName: string, values: E): Observable<T>  {
 
         let fn = (collection: Collection) => collection.insertOne(values)
 
@@ -122,10 +123,26 @@ export class MongoRx {
 
         return obs$.pipe(operatorMongoCollection(fn))
     }
+    public async insert<T,E> (collectionName: string, values: E): Promise<T>  {
 
+        let fn = (collection: Collection) => collection.insertOne(values)
 
+        let obs$ = this.getCollection$(collectionName)
+        if (Array.isArray(values)) {
+            let fnMany = (collection: Collection) => collection.insertMany(values)
 
+            return obs$.pipe(operatorMongoCollection(fnMany)).toPromise()
+        }
 
+         obs$.pipe(operatorMongoCollection(fn)).toPromise()
+    }
+    */ 
+    public getCollection <T>(ns:string ) : MongoRxCollection<T>{
+        let params  =   this.parseNamespace(ns)
+        return new MongoRxCollection(params.db,params.collection,this.client)
+    
+    }
+     /*
     public operateOnCollection<T, R>(collectionName: string, fn: <T, R>(collection: Collection) =>
         Promise<any>) {
 
@@ -136,7 +153,7 @@ export class MongoRx {
 
         return this.getDb$(db).pipe(operatorMongoDB(fn))
     }
-
+*/
     static doOperation<T>(obs: Observable<MongoClient>, promise: Promise<T>) {
 
         return obs.pipe(flatMap(client => {
@@ -147,7 +164,10 @@ export class MongoRx {
     async dispose() {
         await this.client.close()
     }
+    static getNamespace (name:string){
 
+        
+    }
 
 }
 
