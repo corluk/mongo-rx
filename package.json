@@ -8,7 +8,6 @@
     "test": "yarn run compile & node_modules/.bin/mocha -r ts-node/register test/**/*.spec.ts ",
     "build": "yarn run test & yarn run package",
     "package": "yarn pack --filename artifacts/mongo-rx.1.0.0-alpha.7.tgz"
-     
   },
   "keywords": [],
   "author": "",
@@ -20,6 +19,7 @@
     "@types/node": "^13.11.1",
     "chai": "^4.2.0",
     "mocha": "^7.1.2",
+    "mocha-junit-reporter": "^1.23.3",
     "nyc": "^15.0.1",
     "rxjs-utils": "https://github.com/corluk/rxjs-utils.git",
     "ts-node": "^8.9.1",

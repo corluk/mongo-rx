@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.MongoRx = exports.MongoInsertType = void 0;
 var MongoRxCollection_1 = require("./MongoRxCollection");
 var mongodb_1 = require("mongodb");
 var rxjs_1 = require("rxjs");
@@ -105,75 +106,10 @@ var MongoRx = /** @class */ (function () {
         }
         return returnValue;
     };
-    /* public getCollection$(dbOrNamespace?: string): Observable<Collection> {
- 
- 
-         return of(this.client).pipe(map((client: MongoClient) => {
- 
-             let ns = this.getNamespace(dbOrNamespace)
-             let collection = client.db(ns.db).collection(ns.collection)
-             return collection
- 
- 
- 
-         }))
- 
-     }
- 
-     public getDb$(namespace?: string) {
-         return of(this.client).pipe(map((client: MongoClient) => {
- 
-             let ns = this.getNamespace(namespace, true)
-             let db = client.db(ns.db)
-             return db
- 
-         }))
- 
- 
-     }
-     public insert$<T,E>(collectionName: string, values: E): Observable<T>  {
- 
-         let fn = (collection: Collection) => collection.insertOne(values)
- 
-         let obs$ = this.getCollection$(collectionName)
-         if (Array.isArray(values)) {
-             let fnMany = (collection: Collection) => collection.insertMany(values)
- 
-             return obs$.pipe(operatorMongoCollection(fnMany))
-         }
- 
-         return obs$.pipe(operatorMongoCollection(fn))
-     }
-     public async insert<T,E> (collectionName: string, values: E): Promise<T>  {
- 
-         let fn = (collection: Collection) => collection.insertOne(values)
- 
-         let obs$ = this.getCollection$(collectionName)
-         if (Array.isArray(values)) {
-             let fnMany = (collection: Collection) => collection.insertMany(values)
- 
-             return obs$.pipe(operatorMongoCollection(fnMany)).toPromise()
-         }
- 
-          obs$.pipe(operatorMongoCollection(fn)).toPromise()
-     }
-     */
     MongoRx.prototype.getCollection = function (ns) {
         var params = this.parseNamespace(ns);
         return new MongoRxCollection_1.MongoRxCollection(params.db, params.collection, this.client);
     };
-    /*
-   public operateOnCollection<T, R>(collectionName: string, fn: <T, R>(collection: Collection) =>
-       Promise<any>) {
-
-       return this.getCollection$(collectionName).pipe(operatorMongoCollection(fn))
-   }
-
-   public operateOnDb(fn: <T>(db: Db) => Promise<T>, db?: string) {
-
-       return this.getDb$(db).pipe(operatorMongoDB(fn))
-   }
-*/
     MongoRx.doOperation = function (obs, promise) {
         return obs.pipe(operators_1.flatMap(function (client) {
             return rxjs_1.from(promise);
@@ -190,8 +126,6 @@ var MongoRx = /** @class */ (function () {
                 }
             });
         });
-    };
-    MongoRx.getNamespace = function (name) {
     };
     return MongoRx;
 }());
