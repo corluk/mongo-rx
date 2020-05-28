@@ -171,21 +171,15 @@ var MongoRxCollection = /** @class */ (function () {
             });
         });
     };
-    MongoRxCollection.prototype.convertToRx = function (fn, args) {
-        return this.get$().pipe(operators_1.switchMap(function (collection) {
-            if (typeof collection[fn] == "function") {
-                var value = collection[fn].apply(collection, args);
-                if (value instanceof Promise)
-                    return rxjs_1.from(value);
-                return rxjs_1.of(value);
-            }
-            throw new Error(fn + " : is not a function on collection ");
-        }));
-    };
-    MongoRxCollection.prototype.convert = function (fn) {
+    MongoRxCollection.prototype.toRx$ = function (fn) {
         return this.get$().pipe(operators_1.switchMap(function (collection) {
             return fn.call(null, collection);
         }));
+    };
+    MongoRxCollection.prototype.toRx = function (fn) {
+        return this.get$().pipe(operators_1.switchMap(function (collection) {
+            return fn.call(null, collection);
+        })).toPromise();
     };
     return MongoRxCollection;
 }());

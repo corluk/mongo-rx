@@ -141,23 +141,20 @@ export class MongoRxCollection<T> {
     async findAnd(params: FindAnd<T>) {
         return this.findAnd$(params).toPromise()
     }
-    convertToRx(fn: string, args: any[])  {
-       return  this.get$().pipe(switchMap((collection: Collection<T>) => {
-            if (typeof collection[fn] == "function") {
-                let value = (collection[fn] as Function).apply(collection, args)
-                if (value instanceof Promise) return from(value)
-                return of(value)
-            }
-            throw new Error(`${fn} : is not a function on collection `)
+     
 
-        }))
-    }
-
-    convert<R>(fn : (collection:Collection<T>)=> Observable<R>) :Observable<unknown>{
+    toRx$<R>(fn : (collection:Collection<T>)=> Observable<R>) :Observable<unknown>{
 
        return  this.get$().pipe(switchMap(collection => {
 
             return fn.call(null,collection) 
         }))
     }
+    toRx<R>(fn : (collection:Collection<T>)=> Observable<R>) :Promise<unknown>{
+
+        return  this.get$().pipe(switchMap(collection => {
+ 
+             return fn.call(null,collection) 
+         })).toPromise()
+     }
 }
