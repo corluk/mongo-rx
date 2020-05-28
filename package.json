@@ -1,13 +1,14 @@
 {
   "name": "mongo-rx",
-  "version": "1.0.0-alpha.7",
+  "version": "1.0.0-alpha.8",
   "description": "",
   "main": "index.js",
   "scripts": {
     "compile": "tsc",
     "test": "yarn run compile & node_modules/.bin/mocha -r ts-node/register test/**/*.spec.ts ",
-    "build": "yarn run test & yarn run package",
-    "package": "yarn pack --filename artifacts/mongo-rx.1.0.0-alpha.7.tgz"
+    "build": "yarn run test "
+  
+    
   },
   "keywords": [],
   "author": "",

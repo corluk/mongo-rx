@@ -1,5 +1,5 @@
 import { MongoRxCollection } from './MongoRxCollection';
-import { operatorMongoCollection, operatorMongoDB } from './MongoOperators';
+ 
 import { MongoClient, MongoClientOptions, MongoCallback, Db, Collection, IndexOptions, InsertWriteOpResult, InsertOneWriteOpResult } from "mongodb"
 import { Observable, from, of } from "rxjs"
 import { map, flatMap } from "rxjs/operators"
