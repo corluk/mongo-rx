@@ -24,10 +24,14 @@ export class MongoRx {
     static instance
     client: MongoClient
     defaultDb: string
-    clientOptions: MongoClientOptions
+    clientOptions: MongoClientOptions  
     // connection : 
     // uri: string
-    public setClientOptions(options) {
+    public setClientOptions(options?: MongoClientOptions) {
+        if(!options)
+            options = {}
+        let defaultOptions =  { useUnifiedTopology: true } 
+        options = {...options , ...defaultOptions}
         this.clientOptions = options
     }
 
@@ -40,7 +44,8 @@ export class MongoRx {
         }
         return MongoRx.instance
     }
-    public async init(builder: MongoUriBuilderConfig) {
+    public async init(builder: MongoUriBuilderConfig,clientOptions?:MongoClientOptions) {
+        this.setClientOptions(clientOptions)
         let uri = mongoUriBuilder(builder).toString()
         this.client = new MongoClient(uri, this.clientOptions)
         await this.client.connect()

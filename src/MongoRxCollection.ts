@@ -116,7 +116,11 @@ export class MongoRxCollection<T> {
     async cursor<R>(params: CursorQuery<T, R>): Promise<any> {
         return await this.cursor$(params).toPromise()
     }
-    find<R>(params: Find<T, R>): Observable<R> {
+    find<R>(params: Find<T, R>): Promise<R> {
+
+        return this.find$(params).toPromise()
+    }
+    find$<R>(params: Find<T, R>): Observable<R> {
         if (params.findOneOptions) {
             let obs$ = this.get$()
             let fnOne = (collection: Collection) => collection.findOne(params.filter, params.findOneOptions)
@@ -141,7 +145,24 @@ export class MongoRxCollection<T> {
     async findAnd(params: FindAnd<T>) {
         return this.findAnd$(params).toPromise()
     }
-     
+    toRx2$ <R>(fn : (collection:Collection<T>)=> any ) :Observable<R>{
+    
+        return  this.get$().pipe(switchMap(collection => {
+
+            let value : R =  fn.call(null,collection) 
+            if(value instanceof Promise) 
+                return from(value) as Observable<R>
+            return of(value as {} ) as  Observable<R>
+        }))
+    
+
+    }
+    toRx2 <R>(fn : (collection:Collection<T>)=> any ) :Promise<R>{
+    
+        return  this.toRx2$(fn).toPromise() as Promise<R>
+    
+
+    }
 
     toRx$<R>(fn : (collection:Collection<T>)=> Observable<R>) :Observable<unknown>{
 
