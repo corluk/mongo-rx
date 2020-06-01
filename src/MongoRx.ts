@@ -78,7 +78,7 @@ export class MongoRx {
 
 
         if (typeof returnValue.db != "string") {
-            throw new Error("you must ")
+            throw new Error(` typeof db is not a string possibly {db}.{colllection} isn't proper : check ${param}  sent as first argument of this function `)
         }
         if (!onlyDb && typeof returnValue.collection != "string") {
             throw new Error("you must set collection with namespace as db.collection or setDefaultDb first then collection as param")
