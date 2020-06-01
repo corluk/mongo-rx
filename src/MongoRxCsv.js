@@ -11,6 +11,12 @@ var csv_parser_1 = __importDefault(require("csv-parser"));
 var MongoRxCSV = /** @class */ (function () {
     function MongoRxCSV() {
     }
+    MongoRxCSV.read$ = function (csvFile) {
+        return new MongoRxCSV().readCsv$(csvFile);
+    };
+    MongoRxCSV.insert$ = function (csvFile, mongoRxCollection) {
+        return new MongoRxCSV().insertCsv$(mongoRxCollection, csvFile);
+    };
     MongoRxCSV.prototype.readCsv = function (csvFile) {
         return new Promise(function (resolve, reject) {
             var result = [];

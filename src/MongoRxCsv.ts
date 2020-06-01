@@ -8,7 +8,15 @@ import csvParser from "csv-parser"
 
 export class MongoRxCSV<T> {
 
+    static read$<T>(csvFile:string) {
 
+        return new MongoRxCSV<T>().readCsv$(csvFile)
+    }
+
+    static insert$<T>(csvFile :string,mongoRxCollection : MongoRxCollection<T>) {
+       return new MongoRxCSV<T>().insertCsv$(mongoRxCollection,csvFile)  
+    
+    }
     readCsv(csvFile:string) : Promise<T[]> {
 
         return new Promise( (resolve , reject )=>{
