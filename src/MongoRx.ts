@@ -60,7 +60,7 @@ export class MongoRx {
     }
 
 
-    private parseNamespace(param: string, onlyDb: boolean = false): { db: string, collection: string } {
+    public  parseNamespace(param: string, onlyDb: boolean = false): { db: string, collection: string } {
 
         let db = this.defaultDb
         let collection = param
@@ -92,8 +92,10 @@ export class MongoRx {
   
 
     public getCollection <T>(ns:string ) : MongoRxCollection<T>{
-        let params  =   this.parseNamespace(ns)
-        return new MongoRxCollection(params.db,params.collection,this.client)
+         
+        let rxCollection = new MongoRxCollection<T>(this)
+        rxCollection.init(ns) 
+        return rxCollection
     
     }
    

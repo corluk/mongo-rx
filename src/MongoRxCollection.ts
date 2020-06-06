@@ -34,9 +34,19 @@ export interface CursorQuery<T, R> {
     execute?: (cursor: Cursor<T>) => R
 }
 export class MongoRxCollection<T> {
-    collection: Collection<T>
-    public constructor(public readonly collectionName: string, public readonly db: string, client: MongoClient) {
-        this.collection = client.db(db).collection(collectionName)
+  private   collection: Collection<T>
+  private  readonly mongoRx : MongoRx 
+    private dbInfo  :{db:string , collection :string }
+    public constructor(mongoRx: MongoRx) {
+
+        this.mongoRx = mongoRx      
+                
+    }
+
+    public init(ns:string){
+         
+       this.dbInfo =  this.mongoRx.parseNamespace(ns)
+        this.collection = this.mongoRx.getClient().db(this.dbInfo.db).collection(this.dbInfo.collection)
     }
     static operator<T>(fn: (collection: Collection<T>) => Promise<T>): (source: Observable<Collection<T>>) => Observable<T> {
         const _fn = (source: Observable<Collection>) => {
