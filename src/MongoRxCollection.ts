@@ -190,17 +190,18 @@ export class MongoRxCollection<T> {
     findAll(){
         return this.findAll$().toPromise()
     }
+    isConnected(){
+        return (this.collection != null )
+    }
 }
 
 export abstract class AbstractRxCollection<T> extends MongoRxCollection<T> {
 
-    constructor(){
-            super()
-    }
+    
     abstract async setup() :  Promise<void> 
      async init() {
          this.connect(MongoRx.client())
-         await   this.setup()
+         
     }
 
 

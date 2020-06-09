@@ -1,12 +1,17 @@
 import { MongoRxCollection } from './MongoRxCollection';
 import { MongoClient, MongoClientOptions } from "mongodb";
 import { MongoRxOptions, MongoUriBuilderConfig } from "./index";
+import { CollectionRegistry } from '.';
 export declare class MongoRx {
     options: MongoRxOptions;
     static instance: any;
     client: MongoClient;
     defaultDb: string;
     clientOptions: MongoClientOptions;
+    registry: {
+        key: string;
+        collection: MongoRxCollection<unknown>;
+    }[];
     setClientOptions(options?: MongoClientOptions): void;
     static client(): MongoClient;
     static getInstance(): MongoRx;
@@ -17,9 +22,7 @@ export declare class MongoRx {
         db: string;
         collection: string;
     };
-    getCollection<T>(ns: string | {
-        db: string;
-        collection: string;
-    }): MongoRxCollection<T>;
+    addToRegistry<T extends MongoRxCollection<unknown>>(collectionRx: T): void;
+    getCollection<T extends MongoRxCollection<any>>(ns: string | CollectionRegistry): T;
     dispose(): Promise<void>;
 }

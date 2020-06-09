@@ -2,10 +2,10 @@ import { MongoRxCollection } from './MongoRxCollection';
  
 import { MongoClient, MongoClientOptions} from "mongodb"
 import { Observable, from,  } from "rxjs" 
-import {   flatMap } from "rxjs/operators"
+import {   flatMap, filter } from "rxjs/operators"
 import {   mongoUriBuilder } from "./MongUriBuilder"
  import {MongoRxOptions,MongoUriBuilderConfig,strToMongoNamespace } from "./index"
-import { AbstractRxCollection } from '.';
+import { CollectionRegistry } from '.';
 
  
 
@@ -18,6 +18,7 @@ export class MongoRx {
     client: MongoClient
     defaultDb: string
     clientOptions: MongoClientOptions  
+    registry : {key : string , collection : MongoRxCollection<unknown>}[] = []
     // connection : 
     // uri: string
     public setClientOptions(options?: MongoClientOptions) {
@@ -54,7 +55,7 @@ export class MongoRx {
         return this.client
     }
 
-
+    
     public  strToMongoNamespace (param: string, onlyDb: boolean = false): { db: string, collection: string } {
 
         let db = this.defaultDb
@@ -85,18 +86,42 @@ export class MongoRx {
     }
 
   
+    public  addToRegistry<T extends MongoRxCollection<unknown>>(collectionRx: T ){
 
-    public  getCollection <T>(ns:string | {db:string, collection:string }  ) : MongoRxCollection<T>{
+      let ns =   collectionRx.getDbInfo()
+         
+
+        this.registry.push({
+            key : `${ns.db}.${ns.collection}`, 
+
+            collection: collectionRx
+        })
+
+    }
+    
+    public  getCollection <T extends MongoRxCollection<any>> (ns:string | CollectionRegistry ) :T {
           
-        let rxCollection = new MongoRxCollection<T>()
+    
+       
         if(typeof ns == "string") {
             ns = strToMongoNamespace (ns)
         }
-        rxCollection.setDbInfo(ns)
+        let namespace = ns as CollectionRegistry
+        let strNamespace = `${namespace.db}.${namespace.collection}` 
+        if(this.registry.some(value => value.key == strNamespace )){
+            let filtered = this.registry.filter(value => value.key == strNamespace ) 
+            let collectionRx = filtered[0].collection
+            if(!collectionRx.isConnected()){
+                collectionRx.connect(this.getClient())
+            }
+            return  collectionRx as T 
+        } 
+        let rxCollection = new MongoRxCollection<T>()
+        rxCollection.setDbInfo(namespace)
         
         rxCollection.connect(this.getClient())
-       
-        return rxCollection
+        this.addToRegistry(rxCollection)
+        return rxCollection as T 
     
     }
   

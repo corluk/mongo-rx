@@ -51,6 +51,7 @@ import { mongoUriBuilder } from "./MongUriBuilder";
 import { strToMongoNamespace } from "./index";
 var MongoRx = /** @class */ (function () {
     function MongoRx() {
+        this.registry = [];
     }
     // connection : 
     // uri: string
@@ -115,13 +116,31 @@ var MongoRx = /** @class */ (function () {
         }
         return returnValue;
     };
+    MongoRx.prototype.addToRegistry = function (collectionRx) {
+        var ns = collectionRx.getDbInfo();
+        this.registry.push({
+            key: ns.db + "." + ns.collection,
+            collection: collectionRx
+        });
+    };
     MongoRx.prototype.getCollection = function (ns) {
-        var rxCollection = new MongoRxCollection();
         if (typeof ns == "string") {
             ns = strToMongoNamespace(ns);
         }
-        rxCollection.setDbInfo(ns);
+        var namespace = ns;
+        var strNamespace = namespace.db + "." + namespace.collection;
+        if (this.registry.some(function (value) { return value.key == strNamespace; })) {
+            var filtered = this.registry.filter(function (value) { return value.key == strNamespace; });
+            var collectionRx = filtered[0].collection;
+            if (!collectionRx.isConnected()) {
+                collectionRx.connect(this.getClient());
+            }
+            return collectionRx;
+        }
+        var rxCollection = new MongoRxCollection();
+        rxCollection.setDbInfo(namespace);
         rxCollection.connect(this.getClient());
+        this.addToRegistry(rxCollection);
         return rxCollection;
     };
     MongoRx.prototype.dispose = function () {

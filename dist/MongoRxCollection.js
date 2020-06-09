@@ -226,25 +226,22 @@ var MongoRxCollection = /** @class */ (function () {
     MongoRxCollection.prototype.findAll = function () {
         return this.findAll$().toPromise();
     };
+    MongoRxCollection.prototype.isConnected = function () {
+        return (this.collection != null);
+    };
     return MongoRxCollection;
 }());
 export { MongoRxCollection };
 var AbstractRxCollection = /** @class */ (function (_super) {
     __extends(AbstractRxCollection, _super);
     function AbstractRxCollection() {
-        return _super.call(this) || this;
+        return _super !== null && _super.apply(this, arguments) || this;
     }
     AbstractRxCollection.prototype.init = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        this.connect(MongoRx.client());
-                        return [4 /*yield*/, this.setup()];
-                    case 1:
-                        _a.sent();
-                        return [2 /*return*/];
-                }
+                this.connect(MongoRx.client());
+                return [2 /*return*/];
             });
         });
     };

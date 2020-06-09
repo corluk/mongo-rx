@@ -45,9 +45,9 @@ export declare class MongoRxCollection<T> {
     createIndex(index: any, options: IndexOptions): Promise<any>;
     findAll$(): Observable<unknown>;
     findAll(): Promise<unknown>;
+    isConnected(): boolean;
 }
 export declare abstract class AbstractRxCollection<T> extends MongoRxCollection<T> {
-    constructor();
     abstract setup(): Promise<void>;
     init(): Promise<void>;
 }

@@ -99,7 +99,10 @@ export interface MongoUriBuilderConfig {
     options?: MongoUriBuilderConfigOptions
 
 }
-
+export interface CollectionRegistry{
+    db:string
+    collection:string  
+}
 export const strToMongoNamespace = (params: string  , onlyDb: boolean = false): { db: string, collection: string } =>{
 
      

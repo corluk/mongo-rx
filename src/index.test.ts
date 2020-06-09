@@ -55,3 +55,13 @@ test("should inserted csv file item gt 5 " , async ( ) =>{
         expect(found).not.toBeNull() 
         expect(found).toBeGreaterThan(5)
 })
+
+
+test("should retook the same collection " , ()=>{
+
+    let collectionRx = MongoRx.getInstance().getCollection("test.testcsv")
+
+    let collectionRx2  =  MongoRx.getInstance().getCollection("test.testcsv")
+        expect(collectionRx).toMatchObject(collectionRx2)
+
+})

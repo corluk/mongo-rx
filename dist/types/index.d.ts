@@ -86,6 +86,10 @@ export interface MongoUriBuilderConfig {
     database?: string;
     options?: MongoUriBuilderConfigOptions;
 }
+export interface CollectionRegistry {
+    db: string;
+    collection: string;
+}
 export declare const strToMongoNamespace: (params: string, onlyDb?: boolean) => {
     db: string;
     collection: string;
