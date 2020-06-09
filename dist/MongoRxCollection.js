@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -35,37 +34,38 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.MongoRxCollection = void 0;
-var operators_1 = require("rxjs/operators");
-var operators_2 = require("rxjs/operators");
-var rxjs_1 = require("rxjs");
+import { switchMap } from 'rxjs/operators';
+import { flatMap } from 'rxjs/operators';
+import { of, from } from "rxjs";
+import { operator } from "./index";
 var MongoRxCollection = /** @class */ (function () {
-    function MongoRxCollection(collectionName, db, client) {
-        this.collectionName = collectionName;
-        this.db = db;
-        this.collection = client.db(db).collection(collectionName);
+    function MongoRxCollection() {
     }
-    MongoRxCollection.operator = function (fn) {
-        var _fn = function (source) {
-            return source.pipe(operators_2.flatMap(function (collection) {
-                return rxjs_1.from(fn(collection));
-            }));
-        };
-        return _fn;
+    MongoRxCollection.prototype.setDbInfo = function (ns) {
+        this.dbInfo = ns;
+    };
+    MongoRxCollection.prototype.getDbInfo = function () {
+        return this.dbInfo;
+    };
+    MongoRxCollection.prototype.connect = function (mongoClient) {
+        this.collection = mongoClient.db(this.dbInfo.db).collection(this.dbInfo.collection);
     };
     MongoRxCollection.prototype.get = function () {
+        if (this.collection == null) {
+            throw new Error("you must connect to collection by using connect method of this class ");
+            //     this.collection =  this.mongoRx.getClient().db(this.dbInfo.db).collection(this.dbInfo.collection)
+        }
         return this.collection;
     };
     MongoRxCollection.prototype.get$ = function () {
-        return rxjs_1.of(this.collection);
+        return of(this.get());
     };
     MongoRxCollection.prototype.update$ = function (params) {
-        var update = function (collection) { return rxjs_1.from(collection.updateOne(params.filterQuery, params.updateQuery, params.updateOneOptions)); };
+        var update = function (collection) { return from(collection.updateOne(params.filterQuery, params.updateQuery, params.updateOneOptions)); };
         if (params.updateManyOptions) {
-            update = function (collection) { return rxjs_1.from(collection.updateMany(params.filterQuery, params.updateQuery, params.updateManyOptions)); };
+            update = function (collection) { return from(collection.updateMany(params.filterQuery, params.updateQuery, params.updateManyOptions)); };
         }
-        return this.get$().pipe(operators_2.flatMap(update));
+        return this.get$().pipe(flatMap(update));
     };
     MongoRxCollection.prototype.update = function (params) {
         return __awaiter(this, void 0, void 0, function () {
@@ -79,9 +79,9 @@ var MongoRxCollection = /** @class */ (function () {
         var obs$ = this.get$();
         if (Array.isArray(values)) {
             var fnMany = function (collection) { return collection.insertMany(values); };
-            return obs$.pipe(MongoRxCollection.operator(fnMany));
+            return obs$.pipe(operator(fnMany));
         }
-        return obs$.pipe(MongoRxCollection.operator(fn));
+        return obs$.pipe(operator(fn));
     };
     MongoRxCollection.prototype.insert = function (values) {
         return __awaiter(this, void 0, void 0, function () {
@@ -93,33 +93,33 @@ var MongoRxCollection = /** @class */ (function () {
     MongoRxCollection.prototype.cursorOp$ = function (params) {
         var fn = function (source) {
             var result;
-            return source.pipe(operators_1.switchMap(function (collection) {
+            return source.pipe(switchMap(function (collection) {
                 if (params.prepare && params.execute) {
                     var cursor_1 = params.prepare(collection);
                     if (cursor_1 instanceof Promise)
-                        return rxjs_1.from(cursor_1);
+                        return from(cursor_1);
                     var result_1 = params.execute(cursor_1);
                     var obs$_1 = {};
                     cursor_1.close(function (cb) {
                         if (result_1 instanceof Promise) {
-                            obs$_1 = rxjs_1.from(result_1);
+                            obs$_1 = from(result_1);
                         }
                         else {
-                            obs$_1 = rxjs_1.of(result_1);
+                            obs$_1 = of(result_1);
                         }
                     });
                     return obs$_1;
                 }
                 var cursor = params.prepare(collection);
                 if (cursor instanceof Promise)
-                    return rxjs_1.from(cursor);
-                return rxjs_1.of(cursor);
+                    return from(cursor);
+                return of(cursor);
             }));
         };
         return fn;
     };
     MongoRxCollection.prototype.getCursor$ = function (fn) {
-        return this.get$().pipe(operators_2.flatMap(function (collection) { return rxjs_1.of(fn(collection)); }));
+        return this.get$().pipe(flatMap(function (collection) { return of(fn(collection)); }));
     };
     MongoRxCollection.prototype.getCursor = function (fn) {
         return __awaiter(this, void 0, void 0, function () {
@@ -144,11 +144,17 @@ var MongoRxCollection = /** @class */ (function () {
     MongoRxCollection.prototype.find = function (params) {
         return this.find$(params).toPromise();
     };
+    /**
+     *
+     * @param params
+     * @returns (cursor:Cursor) => any | cursor.count()
+     *
+     */
     MongoRxCollection.prototype.find$ = function (params) {
         if (params.findOneOptions) {
             var obs$ = this.get$();
             var fnOne = function (collection) { return collection.findOne(params.filter, params.findOneOptions); };
-            return obs$.pipe(operators_2.flatMap(fnOne));
+            return obs$.pipe(flatMap(fnOne));
         }
         var execute = params.execute != null ? params.execute : function (cursor) { return cursor.count(); };
         var cursorQuery = {
@@ -165,7 +171,7 @@ var MongoRxCollection = /** @class */ (function () {
         else if (params.replacement) {
             fn = function (collection) { return collection.findOneAndReplace(params.filter, params.replacement); };
         }
-        return this.get$().pipe(MongoRxCollection.operator(fn));
+        return this.get$().pipe(operator(fn));
     };
     MongoRxCollection.prototype.findAnd = function (params) {
         return __awaiter(this, void 0, void 0, function () {
@@ -174,27 +180,38 @@ var MongoRxCollection = /** @class */ (function () {
             });
         });
     };
-    MongoRxCollection.prototype.toRx2$ = function (fn) {
-        return this.get$().pipe(operators_1.switchMap(function (collection) {
+    MongoRxCollection.prototype.toRx$ = function (fn) {
+        return this.get$().pipe(switchMap(function (collection) {
             var value = fn.call(null, collection);
             if (value instanceof Promise)
-                return rxjs_1.from(value);
-            return rxjs_1.of(value);
-        }));
-    };
-    MongoRxCollection.prototype.toRx2 = function (fn) {
-        return this.toRx2$(fn).toPromise();
-    };
-    MongoRxCollection.prototype.toRx$ = function (fn) {
-        return this.get$().pipe(operators_1.switchMap(function (collection) {
-            return fn.call(null, collection);
+                return from(value);
+            return of(value);
         }));
     };
     MongoRxCollection.prototype.toRx = function (fn) {
-        return this.get$().pipe(operators_1.switchMap(function (collection) {
-            return fn.call(null, collection);
-        })).toPromise();
+        return this.toRx$(fn).toPromise();
+    };
+    MongoRxCollection.prototype.safeDrop = function () {
+        try {
+            this.get().drop();
+        }
+        catch (err) { }
+    };
+    MongoRxCollection.prototype.createIndex$ = function (index, options) {
+        if (Array.isArray(index)) {
+            return this.toRx$(function (collection) { return collection.createIndexes(index); });
+        }
+        return this.toRx$(function (collection) { return collection.createIndex(index, options); });
+    };
+    MongoRxCollection.prototype.createIndex = function (index, options) {
+        return this.createIndex$(index, options).toPromise();
+    };
+    MongoRxCollection.prototype.findAll$ = function () {
+        return this.find$({ filter: {} });
+    };
+    MongoRxCollection.prototype.findAll = function () {
+        return this.findAll$().toPromise();
     };
     return MongoRxCollection;
 }());
-exports.MongoRxCollection = MongoRxCollection;
+export { MongoRxCollection };

@@ -1,59 +1,7 @@
+import { MongoUriBuilderConfig ,MongoUriBuilderConfigReplica} from './index';
 import { UriBuilder,  IUriQueryModel } from "uribuilder"
  
-export interface MongoUriBuilderConfigOptions {
 
-    tls?: boolean,
-    ssl?: boolean,
-    tlsCertificateKeyFile?: string,
-    tlsCertificateKeyFilePassword?: string,
-    tlsCAFile?: string,
-    tlsAllowInvalidCertificates?: string,
-    tlsAllowInvalidHostnames?: boolean,
-    tlsInsecure?: boolean,
-    connectTimeoutMS?: number,
-    socketTimeoutMS?: number,
-    compressors?: string,
-    zlibCompressionLevel?: number,
-    maxPoolSize?: number,
-    minPoolSize?: number,
-    maxIdleTimeMS?: number,
-    waitQueueMultiple?: number,
-    waitQueueTimeoutMS?: number,
-    w?: number | string,
-    wtimeoutMS?: number,
-    journal?: boolean,
-    readConcernLevel?: string,
-    readPreference?: string,
-    maxStalenessSeconds?: number,
-    readPreferenceTags?: string,
-    authSource?: string,
-    authMechanism?: string,
-    authMechanismProperties?: string,
-    gssapiServiceName?: string,
-    localThresholdMS?: number,
-    serverSelectionTimeoutMS?: number,
-    serverSelectionTryOnce?: boolean,
-    heartbeatFrequencyMS?: number,
-    appName?: string,
-    retryWrites?: boolean,
-    uuidRepresentation?: string,
-
-
-}
-export interface MongoUriBuilderConfigReplica {
-    host: string
-    port: number
-}
-export interface MongoUriBuilderConfig {
-    username?: string,
-    password?: string,
-    host: string,
-    port?: number,
-    replicas?: MongoUriBuilderConfigReplica[]
-    database?: string,
-    options?: MongoUriBuilderConfigOptions
-
-}
 const getOptions = (options: any): IUriQueryModel => {
     let model: IUriQueryModel = {} as IUriQueryModel
 

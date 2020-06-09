@@ -1,4 +1,3 @@
-"use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -10,9 +9,7 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.mongoUriBuilder = void 0;
-var uribuilder_1 = require("uribuilder");
+import { UriBuilder } from "uribuilder";
 var getOptions = function (options) {
     var model = {};
     var keys = Object.keys(options);
@@ -41,13 +38,13 @@ var applyReplicates = function (url, replicas) {
     replicaString.unshift(url.host + ":" + url.port);
     return replicaString.join(",");
 };
-exports.mongoUriBuilder = function (options) {
+export var mongoUriBuilder = function (options) {
     var defaults = {
         host: "localhost",
         port: 27017,
     };
     var config = __assign({ host: "localhost" }, options);
-    var uriBuilder = new uribuilder_1.UriBuilder();
+    var uriBuilder = new UriBuilder();
     uriBuilder.schema = "mongodb";
     if (config.username && config.password) {
         uriBuilder.setAuthority(config.username, config.password);

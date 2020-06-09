@@ -1,68 +1,44 @@
 
+
 import { switchMap } from 'rxjs/operators';
 import { MongoRx } from './MongoRx';
 import { flatMap, map } from 'rxjs/operators';
 import { MongoClient, Collection, Cursor, FilterQuery, UpdateQuery, InsertOneWriteOpResult, InsertWriteOpResult, UpdateOneOptions, UpdateManyOptions, FindOneOptions, CursorResult, OptionalId, CollectionMapFunction, CollectionReduceFunction } from 'mongodb';
 import { of, Observable, from, OperatorFunction } from "rxjs"
-import { sink } from "rxjs-utils"
-import { WithId } from "mongodb"
-export interface UpdateParams<T> {
-    updateQuery: UpdateQuery<T>,
-    filterQuery: FilterQuery<T>,
-    updateOneOptions?: UpdateOneOptions,
-    updateManyOptions?: UpdateManyOptions
-}
- 
-export interface Find<T, R> {
-    filter: FilterQuery<T>,
-    findOneOptions?: FindOneOptions,
-    execute?: (cursor: Cursor<T>) => Observable<R>
-}
-export interface FindAnd<T> {
-    filter: FilterQuery<T>,
-    replacement?: object,
-    updateQuery?: UpdateQuery<T>
-}
-export interface CursorPrepare<T> {
-    prepare: (collection: Collection<any>) => Cursor<T>
-}
-export interface CursorOnly<T> {
-    just: (collection: Collection<T>) => Cursor<T>
-}
-export interface CursorQuery<T, R> {
-    prepare: (collection: Collection<any>) => Cursor<T> | Promise<T>
-    execute?: (cursor: Cursor<T>) => R
-}
+import { UpdateParams, CursorQuery, Find, FindAnd , operator } from "./index"
+import { WithId, IndexOptions } from "mongodb"
+
+
 export class MongoRxCollection<T> {
-  private   collection: Collection<T>
-  private  readonly mongoRx : MongoRx 
-    private dbInfo  :{db:string , collection :string }
-    public constructor(mongoRx: MongoRx) {
+    private collection: Collection<T>
 
-        this.mongoRx = mongoRx      
-                
+    protected dbInfo: { db: string, collection: string }
+
+   
+    public setDbInfo(ns: { db: string, collection: string }) {
+        this.dbInfo = ns
+
     }
 
-    public init(ns:string){
-         
-       this.dbInfo =  this.mongoRx.parseNamespace(ns)
-        this.collection = this.mongoRx.getClient().db(this.dbInfo.db).collection(this.dbInfo.collection)
+    public getDbInfo() {
+        return this.dbInfo
     }
-    static operator<T>(fn: (collection: Collection<T>) => Promise<T>): (source: Observable<Collection<T>>) => Observable<T> {
-        const _fn = (source: Observable<Collection>) => {
-            return source.pipe(flatMap(collection => {
-                return from(fn(collection))
-            }))
-        }
-        return _fn
+
+    connect(mongoClient: MongoClient) {
+
+        this.collection = mongoClient.db(this.dbInfo.db).collection(this.dbInfo.collection)
     }
+ 
 
     public get() {
-
+        if (this.collection == null) {
+            throw new Error("you must connect to collection by using connect method of this class ")
+            //     this.collection =  this.mongoRx.getClient().db(this.dbInfo.db).collection(this.dbInfo.collection)
+        }
         return this.collection
     }
     public get$() {
-        return of(this.collection)
+        return of(this.get())
     }
     public update$(params: UpdateParams<T>) {
         let update = (collection: Collection) => from(collection.updateOne(params.filterQuery, params.updateQuery, params.updateOneOptions))
@@ -79,9 +55,9 @@ export class MongoRxCollection<T> {
         let obs$ = this.get$()
         if (Array.isArray(values)) {
             let fnMany = (collection: Collection) => collection.insertMany(values)
-            return obs$.pipe(MongoRxCollection.operator(fnMany))
+            return obs$.pipe(operator(fnMany))
         }
-        return obs$.pipe(MongoRxCollection.operator(fn))
+        return obs$.pipe(operator(fn))
     }
     public async insert(values: T | T[]): Promise<InsertOneWriteOpResult<WithId<T>> | InsertWriteOpResult<WithId<T>>> {
         return this.insert$(values).toPromise()
@@ -130,6 +106,12 @@ export class MongoRxCollection<T> {
 
         return this.find$(params).toPromise()
     }
+    /**
+     * 
+     * @param params 
+     * @returns (cursor:Cursor) => any | cursor.count()
+     *  
+     */
     find$<R>(params: Find<T, R>): Observable<R> {
         if (params.findOneOptions) {
             let obs$ = this.get$()
@@ -150,42 +132,62 @@ export class MongoRxCollection<T> {
         } else if (params.replacement) {
             fn = (collection: Collection) => collection.findOneAndReplace(params.filter, params.replacement)
         }
-        return this.get$().pipe(MongoRxCollection.operator(fn))
+        return this.get$().pipe(operator(fn))
     }
     async findAnd(params: FindAnd<T>) {
         return this.findAnd$(params).toPromise()
     }
-    toRx2$ <R>(fn : (collection:Collection<T>)=> any ) :Observable<R>{
-    
-        return  this.get$().pipe(switchMap(collection => {
+    toRx$<R>(fn: (collection: Collection<T>) => any): Observable<R> {
 
-            let value : R =  fn.call(null,collection) 
-            if(value instanceof Promise) 
+        return this.get$().pipe(switchMap(collection => {
+
+            let value: R = fn.call(null, collection)
+            if (value instanceof Promise)
                 return from(value) as Observable<R>
-            return of(value as {} ) as  Observable<R>
+            return of(value as {}) as Observable<R>
         }))
-    
+
 
     }
-    toRx2 <R>(fn : (collection:Collection<T>)=> any ) :Promise<R>{
-    
-        return  this.toRx2$(fn).toPromise() as Promise<R>
-    
+    toRx<R>(fn: (collection: Collection<T>) => any): Promise<R> {
+
+        return this.toRx$(fn).toPromise() as Promise<R>
+
+
+    }
+      
+    safeDrop() {
+        try {
+            this.get().drop()
+        }
+        catch (err) { }
 
     }
 
-    toRx$<R>(fn : (collection:Collection<T>)=> Observable<R>) :Observable<unknown>{
+    public createIndex$(index: any, options: IndexOptions): Observable<any> {
 
-       return  this.get$().pipe(switchMap(collection => {
 
-            return fn.call(null,collection) 
-        }))
+
+        if (Array.isArray(index)) {
+            return this.toRx$(collection => collection.createIndexes(index))
+
+        }
+        return this.toRx$(collection => collection.createIndex(index, options))
+
+
     }
-    toRx<R>(fn : (collection:Collection<T>)=> Observable<R>) :Promise<unknown>{
+    public createIndex(index: any, options: IndexOptions): Promise<any> {
 
-        return  this.get$().pipe(switchMap(collection => {
- 
-             return fn.call(null,collection) 
-         })).toPromise()
-     }
+
+        return this.createIndex$(index, options).toPromise()
+
+    }
+
+    findAll$(){
+
+        return this.find$({filter : {}})
+    }
+    findAll(){
+        return this.findAll$().toPromise()
+    }
 }

@@ -1,25 +1,18 @@
 import { MongoRxCollection } from './MongoRxCollection';
  
-import { MongoClient, MongoClientOptions, MongoCallback, Db, Collection, IndexOptions, InsertWriteOpResult, InsertOneWriteOpResult } from "mongodb"
-import { Observable, from, of } from "rxjs"
-import { map, flatMap } from "rxjs/operators"
-import { MongoUriBuilderConfig, mongoUriBuilder } from "./MongUriBuilder"
+import { MongoClient, MongoClientOptions} from "mongodb"
+import { Observable, from,  } from "rxjs" 
+import {   flatMap } from "rxjs/operators"
+import {   mongoUriBuilder } from "./MongUriBuilder"
+ import {MongoRxOptions,MongoUriBuilderConfig,strToMongoNamespace } from "./index"
+import { AbstractRxCollection } from './AbstractRxCollection';
 
-import { connect } from "http2"
+ 
 
-export enum MongoInsertType {
 
-    ONE,
-    MANY,
-    BULKWRITE
-}
-
-export interface MongoRxOptions {
-
-    MongoClientOptions: MongoClientOptions
-}
 
 export class MongoRx {
+    
     options: MongoRxOptions
     static instance
     client: MongoClient
@@ -35,7 +28,9 @@ export class MongoRx {
         this.clientOptions = options
     }
 
-
+    public static client (){
+        return MongoRx.getInstance().getClient()
+    }
     public static getInstance(): MongoRx {
         
         if (!(MongoRx.instance instanceof MongoRx)) {
@@ -60,7 +55,7 @@ export class MongoRx {
     }
 
 
-    public  parseNamespace(param: string, onlyDb: boolean = false): { db: string, collection: string } {
+    public  strToMongoNamespace (param: string, onlyDb: boolean = false): { db: string, collection: string } {
 
         let db = this.defaultDb
         let collection = param
@@ -91,25 +86,24 @@ export class MongoRx {
 
   
 
-    public getCollection <T>(ns:string ) : MongoRxCollection<T>{
-         
-        let rxCollection = new MongoRxCollection<T>(this)
-        rxCollection.init(ns) 
+    public  getCollection <T>(ns:string | {db:string, collection:string }  ) : MongoRxCollection<T>{
+          
+        let rxCollection = new MongoRxCollection<T>()
+        if(typeof ns == "string") {
+            ns = strToMongoNamespace (ns)
+        }
+        rxCollection.setDbInfo(ns)
+        
+        rxCollection.connect(this.getClient())
+       
         return rxCollection
     
     }
-   
-    static doOperation<T>(obs: Observable<MongoClient>, promise: Promise<T>) {
-
-        return obs.pipe(flatMap(client => {
-
-            return from(promise)
-        }))
-    }
+  
     async dispose() {
         await this.client.close()
     }
-     
+    
 
 }
 

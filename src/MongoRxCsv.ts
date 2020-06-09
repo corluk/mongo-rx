@@ -2,7 +2,7 @@ import { InsertWriteOpResult } from 'mongodb';
 import { switchMap } from 'rxjs/operators';
 import {from  , Observable } from 'rxjs';
 import { MongoRxCollection } from './MongoRxCollection';
-import { MongoRx } from './MongoRx';
+ 
 import { createReadStream } from 'fs';
 import csvParser from "csv-parser"
 

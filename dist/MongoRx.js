@@ -1,4 +1,3 @@
-"use strict";
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -46,19 +45,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.MongoRx = exports.MongoInsertType = void 0;
-var MongoRxCollection_1 = require("./MongoRxCollection");
-var mongodb_1 = require("mongodb");
-var rxjs_1 = require("rxjs");
-var operators_1 = require("rxjs/operators");
-var MongUriBuilder_1 = require("./MongUriBuilder");
-var MongoInsertType;
-(function (MongoInsertType) {
-    MongoInsertType[MongoInsertType["ONE"] = 0] = "ONE";
-    MongoInsertType[MongoInsertType["MANY"] = 1] = "MANY";
-    MongoInsertType[MongoInsertType["BULKWRITE"] = 2] = "BULKWRITE";
-})(MongoInsertType = exports.MongoInsertType || (exports.MongoInsertType = {}));
+import { MongoRxCollection } from './MongoRxCollection';
+import { MongoClient } from "mongodb";
+import { mongoUriBuilder } from "./MongUriBuilder";
+import { strToMongoNamespace } from "./index";
 var MongoRx = /** @class */ (function () {
     function MongoRx() {
     }
@@ -70,6 +60,9 @@ var MongoRx = /** @class */ (function () {
         var defaultOptions = { useUnifiedTopology: true };
         options = __assign(__assign({}, options), defaultOptions);
         this.clientOptions = options;
+    };
+    MongoRx.client = function () {
+        return MongoRx.getInstance().getClient();
     };
     MongoRx.getInstance = function () {
         if (!(MongoRx.instance instanceof MongoRx)) {
@@ -84,8 +77,8 @@ var MongoRx = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         this.setClientOptions(clientOptions);
-                        uri = MongUriBuilder_1.mongoUriBuilder(builder).toString();
-                        this.client = new mongodb_1.MongoClient(uri, this.clientOptions);
+                        uri = mongoUriBuilder(builder).toString();
+                        this.client = new MongoClient(uri, this.clientOptions);
                         return [4 /*yield*/, this.client.connect()];
                     case 1:
                         _a.sent();
@@ -100,7 +93,7 @@ var MongoRx = /** @class */ (function () {
     MongoRx.prototype.getClient = function () {
         return this.client;
     };
-    MongoRx.prototype.parseNamespace = function (param, onlyDb) {
+    MongoRx.prototype.strToMongoNamespace = function (param, onlyDb) {
         if (onlyDb === void 0) { onlyDb = false; }
         var db = this.defaultDb;
         var collection = param;
@@ -123,13 +116,13 @@ var MongoRx = /** @class */ (function () {
         return returnValue;
     };
     MongoRx.prototype.getCollection = function (ns) {
-        var params = this.parseNamespace(ns);
-        return new MongoRxCollection_1.MongoRxCollection(params.db, params.collection, this.client);
-    };
-    MongoRx.doOperation = function (obs, promise) {
-        return obs.pipe(operators_1.flatMap(function (client) {
-            return rxjs_1.from(promise);
-        }));
+        var rxCollection = new MongoRxCollection();
+        if (typeof ns == "string") {
+            ns = strToMongoNamespace(ns);
+        }
+        rxCollection.setDbInfo(ns);
+        rxCollection.connect(this.getClient());
+        return rxCollection;
     };
     MongoRx.prototype.dispose = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -145,4 +138,4 @@ var MongoRx = /** @class */ (function () {
     };
     return MongoRx;
 }());
-exports.MongoRx = MongoRx;
+export { MongoRx };

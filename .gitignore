@@ -8,3 +8,4 @@ spec
 coverage 
 .nyc*
 *.log
+test-report*
