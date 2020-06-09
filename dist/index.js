@@ -2,10 +2,10 @@ import { from } from 'rxjs';
 import { flatMap } from 'rxjs/operators';
 import { mongoUriBuilder } from './MongUriBuilder';
 import { MongoRxCSV } from './MongoRxCsv';
-import { MongoRxCollection } from './MongoRxCollection';
+import { MongoRxCollection, AbstractRxCollection } from './MongoRxCollection';
 import { MongoRx } from "./MongoRx";
 export default MongoRx;
-export { MongoRxCSV, MongoRxCollection, mongoUriBuilder };
+export { MongoRxCSV, MongoRxCollection, mongoUriBuilder, AbstractRxCollection };
 export var strToMongoNamespace = function (params, onlyDb) {
     if (onlyDb === void 0) { onlyDb = false; }
     var db = "temp";

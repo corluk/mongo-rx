@@ -5,7 +5,7 @@ import { Observable, from,  } from "rxjs"
 import {   flatMap } from "rxjs/operators"
 import {   mongoUriBuilder } from "./MongUriBuilder"
  import {MongoRxOptions,MongoUriBuilderConfig,strToMongoNamespace } from "./index"
-import { AbstractRxCollection } from './AbstractRxCollection';
+import { AbstractRxCollection } from '.';
 
  
 

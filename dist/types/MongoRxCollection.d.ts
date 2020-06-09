@@ -46,3 +46,8 @@ export declare class MongoRxCollection<T> {
     findAll$(): Observable<unknown>;
     findAll(): Promise<unknown>;
 }
+export declare abstract class AbstractRxCollection<T> extends MongoRxCollection<T> {
+    constructor();
+    abstract setup(): Promise<void>;
+    init(): Promise<void>;
+}

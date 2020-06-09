@@ -1,3 +1,16 @@
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -35,6 +48,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 import { switchMap } from 'rxjs/operators';
+import { MongoRx } from './MongoRx';
 import { flatMap } from 'rxjs/operators';
 import { of, from } from "rxjs";
 import { operator } from "./index";
@@ -215,3 +229,25 @@ var MongoRxCollection = /** @class */ (function () {
     return MongoRxCollection;
 }());
 export { MongoRxCollection };
+var AbstractRxCollection = /** @class */ (function (_super) {
+    __extends(AbstractRxCollection, _super);
+    function AbstractRxCollection() {
+        return _super.call(this) || this;
+    }
+    AbstractRxCollection.prototype.init = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.connect(MongoRx.client());
+                        return [4 /*yield*/, this.setup()];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    return AbstractRxCollection;
+}(MongoRxCollection));
+export { AbstractRxCollection };

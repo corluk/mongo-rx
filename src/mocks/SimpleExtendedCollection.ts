@@ -1,4 +1,4 @@
-import {AbstractRxCollection} from "../AbstractRxCollection" 
+import {AbstractRxCollection} from ".." 
 export interface Basic {
     name : string  
     value : number
